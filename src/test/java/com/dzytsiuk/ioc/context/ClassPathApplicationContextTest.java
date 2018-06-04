@@ -1,9 +1,9 @@
-package ioc.context;
+package com.dzytsiuk.ioc.context;
 
-import ioc.entity.BeanDefinition;
-import ioc.service.MailService;
-import ioc.service.PaymentService;
-import ioc.service.UserService;
+import com.dzytsiuk.ioc.service.MailService;
+import com.dzytsiuk.ioc.service.PaymentService;
+import com.dzytsiuk.ioc.service.UserService;
+import com.dzytsiuk.ioc.entity.BeanDefinition;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class ClassPathApplicationContextTest {
         beanDefinitions = new ArrayList<>();
         BeanDefinition beanDefinition1 = new BeanDefinition();
         beanDefinition1.setId("mailService");
-        beanDefinition1.setBeanClassName("ioc.service.MailService");
+        beanDefinition1.setBeanClassName("com.dzytsiuk.ioc.service.MailService");
         beanDefinition1.setDependencies(new HashMap<String, String>() {{
             put("protocol", "POP3");
             put("port", "3000");
@@ -36,7 +36,7 @@ public class ClassPathApplicationContextTest {
 
         BeanDefinition beanDefinition2 = new BeanDefinition();
         beanDefinition2.setId("userService");
-        beanDefinition2.setBeanClassName("ioc.service.UserService");
+        beanDefinition2.setBeanClassName("com.dzytsiuk.ioc.service.UserService");
         beanDefinition2.setRefDependencies(new HashMap<String, String>() {{
             put("mailService", "mailService");
         }});
@@ -44,7 +44,7 @@ public class ClassPathApplicationContextTest {
 
         BeanDefinition beanDefinition3 = new BeanDefinition();
         beanDefinition3.setId("paymentWithMaxService");
-        beanDefinition3.setBeanClassName("ioc.service.PaymentService");
+        beanDefinition3.setBeanClassName("com.dzytsiuk.ioc.service.PaymentService");
         beanDefinition3.setRefDependencies(new HashMap<String, String>() {{
             put("mailService", "mailService");
         }});
@@ -55,7 +55,7 @@ public class ClassPathApplicationContextTest {
 
         BeanDefinition beanDefinition4 = new BeanDefinition();
         beanDefinition4.setId("paymentService");
-        beanDefinition4.setBeanClassName("ioc.service.PaymentService");
+        beanDefinition4.setBeanClassName("com.dzytsiuk.ioc.service.PaymentService");
         beanDefinition4.setRefDependencies(new HashMap<>());
         beanDefinition4.getRefDependencies().put("mailService", "mailService");
 

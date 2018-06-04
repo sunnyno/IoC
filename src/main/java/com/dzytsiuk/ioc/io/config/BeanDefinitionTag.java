@@ -1,4 +1,4 @@
-package ioc.io.config;
+package com.dzytsiuk.ioc.io.config;
 
 
 public enum BeanDefinitionTag {

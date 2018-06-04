@@ -1,7 +1,7 @@
-package ioc.io;
+package com.dzytsiuk.ioc.io;
 
 
-import ioc.entity.BeanDefinition;
+import com.dzytsiuk.ioc.entity.BeanDefinition;
 
 import java.util.List;
 

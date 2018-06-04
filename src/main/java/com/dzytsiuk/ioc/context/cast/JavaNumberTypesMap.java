@@ -1,4 +1,4 @@
-package ioc.context.cast;
+package com.dzytsiuk.ioc.context.cast;
 
 
 public enum JavaNumberTypesMap {

@@ -1,4 +1,4 @@
-package ioc.exception;
+package com.dzytsiuk.ioc.exception;
 
 
 public class SourceParseException extends RuntimeException {

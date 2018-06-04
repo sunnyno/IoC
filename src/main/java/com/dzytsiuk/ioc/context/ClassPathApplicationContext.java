@@ -1,12 +1,12 @@
-package ioc.context;
+package com.dzytsiuk.ioc.context;
 
 
-import ioc.context.cast.JavaNumberTypesMap;
-import ioc.entity.Bean;
-import ioc.entity.BeanDefinition;
-import ioc.exception.BeanInstantiationException;
-import ioc.io.BeanDefinitionReader;
-import ioc.io.factory.BeanDefinitionFactoryMethod;
+import com.dzytsiuk.ioc.context.cast.JavaNumberTypesMap;
+import com.dzytsiuk.ioc.exception.BeanInstantiationException;
+import com.dzytsiuk.ioc.entity.Bean;
+import com.dzytsiuk.ioc.entity.BeanDefinition;
+import com.dzytsiuk.ioc.io.BeanDefinitionReader;
+import com.dzytsiuk.ioc.io.factory.BeanDefinitionFactoryMethod;
 
 import java.lang.reflect.Method;
 import java.util.*;

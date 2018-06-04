@@ -1,4 +1,4 @@
-package ioc.entity;
+package com.dzytsiuk.ioc.entity;
 
 
 import java.util.Map;

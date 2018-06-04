@@ -1,9 +1,9 @@
-package ioc.io;
+package com.dzytsiuk.ioc.io;
 
 
-import ioc.entity.BeanDefinition;
-import ioc.exception.SourceParseException;
-import ioc.io.config.BeanDefinitionTag;
+import com.dzytsiuk.ioc.entity.BeanDefinition;
+import com.dzytsiuk.ioc.exception.SourceParseException;
+import com.dzytsiuk.ioc.io.config.BeanDefinitionTag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

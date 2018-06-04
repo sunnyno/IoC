@@ -1,4 +1,4 @@
-package ioc.service;
+package com.dzytsiuk.ioc.service;
 
 public class PaymentService {
     private MailService mailService;

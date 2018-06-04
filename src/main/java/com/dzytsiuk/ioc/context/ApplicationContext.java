@@ -1,7 +1,7 @@
-package ioc.context;
+package com.dzytsiuk.ioc.context;
 
 
-import ioc.io.BeanDefinitionReader;
+import com.dzytsiuk.ioc.io.BeanDefinitionReader;
 
 public interface ApplicationContext<T> {
 

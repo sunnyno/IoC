@@ -1,8 +1,8 @@
-package ioc.io.factory;
+package com.dzytsiuk.ioc.io.factory;
 
 
-import ioc.io.BeanDefinitionReader;
-import ioc.io.XMLBeanDefinitionReader;
+import com.dzytsiuk.ioc.io.BeanDefinitionReader;
+import com.dzytsiuk.ioc.io.XMLBeanDefinitionReader;
 
 public class BeanDefinitionFactoryMethod {
 
