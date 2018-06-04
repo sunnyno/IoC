@@ -61,8 +61,8 @@ public class ClassPathApplicationContextTest {
 
         beanDefinitions.add(beanDefinition1);
         beanDefinitions.add(beanDefinition2);
-        beanDefinitions.add(beanDefinition3);
         beanDefinitions.add(beanDefinition4);
+        beanDefinitions.add(beanDefinition3);
 
         userService = new UserService();
         mailService = new MailService();
@@ -75,7 +75,7 @@ public class ClassPathApplicationContextTest {
         paymentServiceWithMaxAmount.setMailService(mailService);
         paymentServiceWithMaxAmount.setMaxAmount(500);
         classPathApplicationContext = new ClassPathApplicationContext("resources/context.xml"
-                , "resources/payment-context.xml");
+                /*, "resources/payment-context.xml"*/);
     }
 
 

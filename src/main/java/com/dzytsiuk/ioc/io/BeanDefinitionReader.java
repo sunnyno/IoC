@@ -10,4 +10,6 @@ public interface BeanDefinitionReader {
 
     void setContextFilePath(String contextFile);
 
+    void setImportedContextFileNames(List<String> initialContextFileNames);
+
 }

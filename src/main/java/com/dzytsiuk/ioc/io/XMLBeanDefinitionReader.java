@@ -22,6 +22,7 @@ import java.util.List;
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
     private static final XMLBeanDefinitionReader INSTANCE = new XMLBeanDefinitionReader();
+    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance();
 
     private List<String> contextFiles;
 
@@ -37,8 +38,7 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
     public List<BeanDefinition> readBeanDefinitions() {
         List<BeanDefinition> beanDefinitions = new ArrayList<>();
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            DocumentBuilder dBuilder = DB_FACTORY.newDocumentBuilder();
             for (String xmlFilePath : contextFiles) {
                 File file = new File(xmlFilePath);
                 Document doc = dBuilder.parse(file);
@@ -70,7 +70,6 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
             beanDefinition.setBeanClassName(element.getAttribute(BeanDefinitionTag.CLASS.getName()));
             NodeList properties = element.getElementsByTagName(BeanDefinitionTag.PROPERTY.getName());
             setBeanProperties(beanDefinition, properties);
-
         }
     }
 
@@ -78,8 +77,8 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
         HashMap<String, String> beanAttributes = new HashMap<>();
         HashMap<String, String> beanRefAttributes = new HashMap<>();
 
-        for (int j = 0; j < properties.getLength(); j++) {
-            Element item = (Element) properties.item(j);
+        for (int i = 0; i < properties.getLength(); i++) {
+            Element item = (Element) properties.item(i);
             String attributeName = item.getAttribute(BeanDefinitionTag.NAME.getName());
             String attributeValue = item.getAttribute(BeanDefinitionTag.VALUE.getName());
             String attributeRefValue = item.getAttribute(BeanDefinitionTag.REF.getName());
@@ -97,5 +96,30 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
     public void setContextFilePath(String contextFile) {
         this.contextFiles.add(contextFile);
+    }
+
+    @Override
+    public void setImportedContextFileNames(List<String> initialContextFileNames) {
+        try {
+            DocumentBuilder dBuilder = DB_FACTORY.newDocumentBuilder();
+            List<String> importFiles = new ArrayList<>();
+            for (String xmlFilePath : initialContextFileNames) {
+                File file = new File(xmlFilePath);
+                Document doc = dBuilder.parse(file);
+                NodeList nodeList = doc.getElementsByTagName(BeanDefinitionTag.IMPORT.getName());
+                for (int i = 0; i < nodeList.getLength(); i++) {
+                    Element element = (Element) nodeList.item(i);
+                    String resource = element.getAttribute(BeanDefinitionTag.RESOURCE.getName());
+                    importFiles.add(resource);
+                }
+            }
+            while (!importFiles.isEmpty()) {
+                contextFiles.addAll(importFiles);
+                setImportedContextFileNames(importFiles);
+                importFiles.clear();
+            }
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            throw new SourceParseException("Error parsing XML", e);
+        }
     }
 }

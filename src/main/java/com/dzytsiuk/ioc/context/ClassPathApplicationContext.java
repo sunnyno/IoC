@@ -1,7 +1,7 @@
 package com.dzytsiuk.ioc.context;
 
 
-import com.dzytsiuk.ioc.context.cast.JavaNumberTypesMap;
+import com.dzytsiuk.ioc.context.cast.JavaNumberTypeCast;
 import com.dzytsiuk.ioc.exception.BeanInstantiationException;
 import com.dzytsiuk.ioc.entity.Bean;
 import com.dzytsiuk.ioc.entity.BeanDefinition;
@@ -11,26 +11,26 @@ import com.dzytsiuk.ioc.io.factory.BeanDefinitionFactoryMethod;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class ClassPathApplicationContext<T> implements ApplicationContext {
+public class ClassPathApplicationContext implements ApplicationContext {
     private static final String SETTER_PREFIX = "set";
     private static final int SETTER_PARAMETER_NUMBER = 0;
 
-    private String[] path;
+    private List<String> path;
     private Set<BeanDefinitionReader> beanDefinitionReaderSet;
     private Map<String, Bean> beans;
     private List<BeanDefinition> beanDefinitions;
-    private BeanDefinitionFactoryMethod beanDefinitionFactoryMethod;
 
     public ClassPathApplicationContext(String... path) {
-        this.path = path;
-        beanDefinitionFactoryMethod = new BeanDefinitionFactoryMethod();
+        this.path = Arrays.asList(path);
         beanDefinitions = new ArrayList<>();
         beans = new HashMap<>();
         createBeansFromBeanDefinitions();
     }
 
     private void createBeansFromBeanDefinitions() {
+
         setBeanDefinitionReaders();
+        setImports();
 
         for (BeanDefinitionReader definitionReader : beanDefinitionReaderSet) {
             beanDefinitions.addAll(definitionReader.readBeanDefinitions());
@@ -51,8 +51,16 @@ public class ClassPathApplicationContext<T> implements ApplicationContext {
         }
     }
 
+    private void setImports() {
+        for (BeanDefinitionReader definitionReader : beanDefinitionReaderSet) {
+            definitionReader.setImportedContextFileNames(path);
+        }
+    }
+
     private void setBeanDefinitionReaders() {
+        BeanDefinitionFactoryMethod beanDefinitionFactoryMethod = new BeanDefinitionFactoryMethod();
         beanDefinitionReaderSet = new HashSet<>();
+
         for (String filePath : path) {
             BeanDefinitionReader beanDefinitionReader = beanDefinitionFactoryMethod
                     .getBeanDefinitionReader(filePath.substring(filePath.lastIndexOf(".") + 1));
@@ -82,17 +90,13 @@ public class ClassPathApplicationContext<T> implements ApplicationContext {
                 Method[] methods = clazz.getMethods();
                 for (Method method : methods) {
                     if (method.getName().equals(getSetterName(propertyName))) {
-                        Class<?>[] parameterTypes = method.getParameterTypes();
-                        Class<?> argumentType = parameterTypes[SETTER_PARAMETER_NUMBER];
+                        Class<?> argumentType = method.getParameterTypes()[SETTER_PARAMETER_NUMBER];
                         if (ref) {
                             method.invoke(bean.getValue(), argumentType.cast(beans.get(propertyValue).getValue()));
                         } else {
-                            if (argumentType.isPrimitive()) {
-                                method.invoke(bean.getValue(),
-                                        JavaNumberTypesMap.castPrimitive(propertyValue, argumentType));
-                            } else {
-                                method.invoke(bean.getValue(), argumentType.cast(propertyValue));
-                            }
+                            method.invoke(bean.getValue(), argumentType.isPrimitive() ?
+                                    JavaNumberTypeCast.castPrimitive(propertyValue, argumentType)
+                                    : argumentType.cast(propertyValue));
                         }
                         break;
                     }
