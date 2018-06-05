@@ -1,5 +1,5 @@
 <beans>
-    <import resource="resources/payment-max-context.xml"/>
+    <import resource="src/test/resources/payment-max-context.xml"/>
 
     <bean id="paymentService" class="com.dzytsiuk.ioc.service.PaymentService">
         <property name="mailService" ref="mailService"/>

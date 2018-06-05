@@ -74,8 +74,8 @@ public class ClassPathApplicationContextTest {
         paymentService.setMailService(mailService);
         paymentServiceWithMaxAmount.setMailService(mailService);
         paymentServiceWithMaxAmount.setMaxAmount(500);
-        classPathApplicationContext = new ClassPathApplicationContext("resources/context.xml"
-                /*, "resources/payment-context.xml"*/);
+        classPathApplicationContext = new ClassPathApplicationContext("src/test/resources/context.xml"
+                /*, "src/test/resources/payment-context.xml"*/);
     }
 
 

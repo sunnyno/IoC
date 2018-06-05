@@ -13,7 +13,7 @@ import java.util.*;
 
 public class ClassPathApplicationContext implements ApplicationContext {
     private static final String SETTER_PREFIX = "set";
-    private static final int SETTER_PARAMETER_NUMBER = 0;
+    private static final int SETTER_PARAMETER_INDEX = 0;
 
     private List<String> path;
     private Set<BeanDefinitionReader> beanDefinitionReaderSet;
@@ -90,7 +90,7 @@ public class ClassPathApplicationContext implements ApplicationContext {
                 Method[] methods = clazz.getMethods();
                 for (Method method : methods) {
                     if (method.getName().equals(getSetterName(propertyName))) {
-                        Class<?> argumentType = method.getParameterTypes()[SETTER_PARAMETER_NUMBER];
+                        Class<?> argumentType = method.getParameterTypes()[SETTER_PARAMETER_INDEX];
                         if (ref) {
                             method.invoke(bean.getValue(), argumentType.cast(beans.get(propertyValue).getValue()));
                         } else {

@@ -1,5 +1,5 @@
 <beans>
-    <import resource="resources/payment-context.xml"/>
+    <import resource="src/test/resources/payment-context.xml"/>
 
     <bean id="mailService" class="com.dzytsiuk.ioc.service.MailService">
         <property name="protocol" value="POP3"/>
