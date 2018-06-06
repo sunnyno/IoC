@@ -3,123 +3,158 @@ package com.dzytsiuk.ioc.io;
 
 import com.dzytsiuk.ioc.entity.BeanDefinition;
 import com.dzytsiuk.ioc.exception.SourceParseException;
-import com.dzytsiuk.ioc.io.config.BeanDefinitionTag;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
-    private static final XMLBeanDefinitionReader INSTANCE = new XMLBeanDefinitionReader();
-    private static final DocumentBuilderFactory DB_FACTORY = DocumentBuilderFactory.newInstance();
+
+    private static final SAXParserFactory SAX_PARSER_FACTORY = SAXParserFactory.newInstance();
+
 
     private List<String> contextFiles;
+    private List<BeanDefinition> beanDefinitions = new ArrayList<>();
 
-    private XMLBeanDefinitionReader() {
-        contextFiles = new ArrayList<>();
+    public XMLBeanDefinitionReader(String... path) {
+        contextFiles = new ArrayList<>(Arrays.asList(path));
     }
 
-    public static XMLBeanDefinitionReader getINSTANCE() {
-        return INSTANCE;
-    }
 
     @Override
-    public List<BeanDefinition> readBeanDefinitions() {
-        List<BeanDefinition> beanDefinitions = new ArrayList<>();
+    public List<BeanDefinition> getBeanDefinitions() {
+        setImportedContextFileNames(contextFiles);
+
         try {
-            DocumentBuilder dBuilder = DB_FACTORY.newDocumentBuilder();
-            for (String xmlFilePath : contextFiles) {
-                File file = new File(xmlFilePath);
-                Document doc = dBuilder.parse(file);
-
-                if (!doc.getDocumentElement().getNodeName().equals(BeanDefinitionTag.BEANS.getName())) {
-                    throw new SourceParseException("Root element '" + BeanDefinitionTag.BEANS.getName() + "' not found");
-                }
-                NodeList beanNodeList = doc.getElementsByTagName(BeanDefinitionTag.BEAN.getName());
-
-                for (int i = 0; i < beanNodeList.getLength(); i++) {
-                    Node node = beanNodeList.item(i);
-                    BeanDefinition beanDefinition = new BeanDefinition();
-                    setBeanDefinitions(node, beanDefinition);
-                    beanDefinitions.add(beanDefinition);
-                }
+            SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
+            DefaultHandler beanDefinitionHandler = new BeanDefinitionHandler();
+            for (String contextFile : contextFiles) {
+                saxParser.parse(contextFile, beanDefinitionHandler);
             }
-            return beanDefinitions;
+
 
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SourceParseException("Error parsing XML", e);
         }
-
+        return beanDefinitions;
     }
 
-    private void setBeanDefinitions(Node node, BeanDefinition beanDefinition) {
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-            Element element = (Element) node;
-            beanDefinition.setId(element.getAttribute(BeanDefinitionTag.ID.getName()));
-            beanDefinition.setBeanClassName(element.getAttribute(BeanDefinitionTag.CLASS.getName()));
-            NodeList properties = element.getElementsByTagName(BeanDefinitionTag.PROPERTY.getName());
-            setBeanProperties(beanDefinition, properties);
-        }
-    }
-
-    private void setBeanProperties(BeanDefinition beanDefinition, NodeList properties) {
-        HashMap<String, String> beanAttributes = new HashMap<>();
-        HashMap<String, String> beanRefAttributes = new HashMap<>();
-
-        for (int i = 0; i < properties.getLength(); i++) {
-            Element item = (Element) properties.item(i);
-            String attributeName = item.getAttribute(BeanDefinitionTag.NAME.getName());
-            String attributeValue = item.getAttribute(BeanDefinitionTag.VALUE.getName());
-            String attributeRefValue = item.getAttribute(BeanDefinitionTag.REF.getName());
-            if (!attributeValue.isEmpty()) {
-                beanAttributes.put(attributeName, attributeValue);
-                beanDefinition.setDependencies(beanAttributes);
-            }
-            if (!attributeRefValue.isEmpty()) {
-                beanRefAttributes.put(attributeName, attributeRefValue);
-                beanDefinition.setRefDependencies(beanRefAttributes);
-            }
-
-        }
-    }
-
-    public void setContextFilePath(String contextFile) {
-        this.contextFiles.add(contextFile);
-    }
-
-    @Override
-    public void setImportedContextFileNames(List<String> initialContextFileNames) {
+    void setImportedContextFileNames(List<String> initialContextFileNames) {
         try {
-            DocumentBuilder dBuilder = DB_FACTORY.newDocumentBuilder();
-            List<String> importFiles = new ArrayList<>();
+            SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
+            ImportHandler importHandler = new ImportHandler();
+
             for (String xmlFilePath : initialContextFileNames) {
-                File file = new File(xmlFilePath);
-                Document doc = dBuilder.parse(file);
-                NodeList nodeList = doc.getElementsByTagName(BeanDefinitionTag.IMPORT.getName());
-                for (int i = 0; i < nodeList.getLength(); i++) {
-                    Element element = (Element) nodeList.item(i);
-                    String resource = element.getAttribute(BeanDefinitionTag.RESOURCE.getName());
-                    importFiles.add(resource);
-                }
+                saxParser.parse(xmlFilePath, importHandler);
+
             }
-            while (!importFiles.isEmpty()) {
-                contextFiles.addAll(importFiles);
-                setImportedContextFileNames(importFiles);
-                importFiles.clear();
+            while (!importHandler.importFiles.isEmpty()) {
+                contextFiles.addAll(importHandler.importFiles);
+                setImportedContextFileNames(importHandler.importFiles);
+                importHandler.importFiles.clear();
             }
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SourceParseException("Error parsing XML", e);
         }
     }
+
+    class BeanDefinitionHandler extends DefaultHandler {
+
+        private static final String BEANS = "beans";
+        private static final String BEAN = "bean";
+        private static final String ID = "id";
+        private static final String CLASS = "class";
+        private static final String PROPERTY = "property";
+        private static final String NAME = "name";
+        private static final String VALUE = "value";
+        private static final String REF = "ref";
+        private boolean bbeans = false;
+
+        private BeanDefinition beanDefinition = new BeanDefinition();
+
+        public void startElement(String uri, String localName, String qName,
+                                 Attributes attributes) {
+
+            if (qName.equalsIgnoreCase(BEANS)) {
+                bbeans = true;
+            }
+
+            if (qName.equalsIgnoreCase(BEAN)) {
+                beanDefinition.setId(attributes.getValue(ID));
+                beanDefinition.setBeanClassName(attributes.getValue(CLASS));
+            }
+
+            if (qName.equalsIgnoreCase(PROPERTY)) {
+                String name = attributes.getValue(NAME);
+                String value = attributes.getValue(VALUE);
+                String ref = attributes.getValue(REF);
+                if (ref != null) {
+                    if (beanDefinition.getRefDependencies() != null) {
+                        beanDefinition.getRefDependencies().put(name, ref);
+                    } else {
+                        beanDefinition.setRefDependencies(new HashMap<String, String>() {{
+                            put(name, ref);
+                        }});
+                    }
+                } else {
+                    if (beanDefinition.getDependencies() != null) {
+                        beanDefinition.getDependencies().put(name, value);
+                    } else {
+                        beanDefinition.setDependencies(new HashMap<String, String>() {{
+                            put(name, value);
+                        }});
+                    }
+                }
+            }
+
+        }
+
+        public void endElement(String uri, String localName,
+                               String qName) {
+            if (qName.equals(BEAN)) {
+                if (!bbeans) throw new SourceParseException("Root Element " + BEANS + " is not found");
+                beanDefinitions.add(beanDefinition);
+                beanDefinition = new BeanDefinition();
+            }
+        }
+
+
+    }
+
+    class ImportHandler extends DefaultHandler {
+
+        private static final String IMPORT = "import";
+        private static final String RESOURCE = "resource";
+        private String resource;
+
+
+        private List<String> importFiles = new ArrayList<>();
+
+        public void startElement(String uri, String localName, String qName,
+                                 Attributes attributes) {
+
+            if (qName.equalsIgnoreCase(IMPORT)) {
+                resource = attributes.getValue(RESOURCE);
+            }
+        }
+
+        public void endElement(String uri, String localName,
+                               String qName) throws SAXException {
+            if (qName.equals(IMPORT)) {
+                importFiles.add(resource);
+            }
+        }
+
+    }
+
 }
+

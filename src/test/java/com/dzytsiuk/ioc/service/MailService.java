@@ -1,6 +1,8 @@
 package com.dzytsiuk.ioc.service;
 
 
+import java.util.Objects;
+
 public class MailService {
     private int port;
     private String protocol;
@@ -17,10 +19,18 @@ public class MailService {
     }
 
     @Override
-    public String toString() {
-        return "MailService{" +
-                "port=" + port +
-                ", protocol='" + protocol + '\'' +
-                '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MailService that = (MailService) o;
+        return port == that.port &&
+                Objects.equals(protocol, that.protocol);
     }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(port, protocol);
+    }
+
 }

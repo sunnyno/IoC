@@ -5,8 +5,9 @@ import com.dzytsiuk.ioc.context.cast.JavaNumberTypeCast;
 import com.dzytsiuk.ioc.exception.BeanInstantiationException;
 import com.dzytsiuk.ioc.entity.Bean;
 import com.dzytsiuk.ioc.entity.BeanDefinition;
+import com.dzytsiuk.ioc.exception.MultipleBeansForClassException;
 import com.dzytsiuk.ioc.io.BeanDefinitionReader;
-import com.dzytsiuk.ioc.io.factory.BeanDefinitionFactoryMethod;
+import com.dzytsiuk.ioc.io.XMLBeanDefinitionReader;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -15,59 +16,53 @@ public class ClassPathApplicationContext implements ApplicationContext {
     private static final String SETTER_PREFIX = "set";
     private static final int SETTER_PARAMETER_INDEX = 0;
 
-    private List<String> path;
-    private Set<BeanDefinitionReader> beanDefinitionReaderSet;
     private Map<String, Bean> beans;
     private List<BeanDefinition> beanDefinitions;
 
-    public ClassPathApplicationContext(String... path) {
-        this.path = Arrays.asList(path);
-        beanDefinitions = new ArrayList<>();
-        beans = new HashMap<>();
-        createBeansFromBeanDefinitions();
+    public ClassPathApplicationContext() {
+
     }
 
-    private void createBeansFromBeanDefinitions() {
+    public ClassPathApplicationContext(String... path) {
+        setBeanDefinitionReader(new XMLBeanDefinitionReader(path));
+        start();
+    }
 
-        setBeanDefinitionReaders();
-        setImports();
+    public void start() {
+        beans = new HashMap<>();
+        constructBeans();
+        injectValueDependencies();
+        injectRefDependencies();
+    }
 
-        for (BeanDefinitionReader definitionReader : beanDefinitionReaderSet) {
-            beanDefinitions.addAll(definitionReader.readBeanDefinitions());
-        }
+    private void constructBeans() {
 
         for (BeanDefinition beanDefinition : beanDefinitions) {
             injectBeanIdAndValue(beanDefinition);
         }
 
+    }
+
+
+    private void injectValueDependencies() {
         for (BeanDefinition beanDefinition : beanDefinitions) {
             Bean bean = beans.get(beanDefinition.getId());
             if (beanDefinition.getDependencies() != null) {
                 injectDependencies(beanDefinition.getDependencies(), bean, false);
             }
+        }
+    }
+
+    private void injectRefDependencies() {
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            Bean bean = beans.get(beanDefinition.getId());
             if (beanDefinition.getRefDependencies() != null) {
                 injectDependencies(beanDefinition.getRefDependencies(), bean, true);
             }
         }
+
     }
 
-    private void setImports() {
-        for (BeanDefinitionReader definitionReader : beanDefinitionReaderSet) {
-            definitionReader.setImportedContextFileNames(path);
-        }
-    }
-
-    private void setBeanDefinitionReaders() {
-        BeanDefinitionFactoryMethod beanDefinitionFactoryMethod = new BeanDefinitionFactoryMethod();
-        beanDefinitionReaderSet = new HashSet<>();
-
-        for (String filePath : path) {
-            BeanDefinitionReader beanDefinitionReader = beanDefinitionFactoryMethod
-                    .getBeanDefinitionReader(filePath.substring(filePath.lastIndexOf(".") + 1));
-            setBeanDefinitionReader(beanDefinitionReader);
-            beanDefinitionReader.setContextFilePath(filePath);
-        }
-    }
 
     private void injectBeanIdAndValue(BeanDefinition beanDefinition) {
         try {
@@ -113,36 +108,39 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
 
     @Override
-    public Object getBean(Class clazz) {
+    public <T> T getBean(Class clazz) {
+        T bean = null;
+        int count = 0;
         for (Map.Entry<String, Bean> entry : beans.entrySet()) {
-            if (clazz.isInstance(entry.getValue().getValue())) {
-                return entry.getValue().getValue();
+            Bean tmpBean = entry.getValue();
+            if (clazz.isInstance(tmpBean.getValue())) {
+                count++;
+                bean = (T) tmpBean.getValue();
             }
-
+            if (count > 1) {
+                throw new MultipleBeansForClassException("Multiple beans found for " + clazz.getName());
+            }
         }
-        return null;
+
+        return bean;
     }
 
     @Override
-    public Object getBean(String name, Class clazz) {
+    public <T> T getBean(String name, Class clazz) {
         if (clazz.isInstance(beans.get(name).getValue())) {
-            return beans.get(name).getValue();
+            return (T) beans.get(name).getValue();
         }
         return null;
     }
 
     @Override
-    public Object getBean(String name) {
-        return beans.get(name).getValue();
+    public <T> T getBean(String name) {
+        return (T) beans.get(name).getValue();
     }
 
     @Override
     public void setBeanDefinitionReader(BeanDefinitionReader beanDefinitionReader) {
-        beanDefinitionReaderSet.add(beanDefinitionReader);
+        this.beanDefinitions = beanDefinitionReader.getBeanDefinitions();
     }
 
-    //for tests
-    List<BeanDefinition> getBeanDefinitions() {
-        return beanDefinitions;
-    }
 }

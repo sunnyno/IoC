@@ -2,6 +2,7 @@ package com.dzytsiuk.ioc.entity;
 
 
 import java.util.Map;
+import java.util.Objects;
 
 public class BeanDefinition {
     private String id;
@@ -42,12 +43,19 @@ public class BeanDefinition {
     }
 
     @Override
-    public String toString() {
-        return "BeanDefinition{" +
-                "id='" + id + '\'' +
-                ", beanClassName='" + beanClassName + '\'' +
-                ", dependencies=" + dependencies +
-                ", refDependencies=" + refDependencies +
-                '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BeanDefinition that = (BeanDefinition) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(beanClassName, that.beanClassName) &&
+                Objects.equals(dependencies, that.dependencies) &&
+                Objects.equals(refDependencies, that.refDependencies);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, beanClassName, dependencies, refDependencies);
     }
 }
