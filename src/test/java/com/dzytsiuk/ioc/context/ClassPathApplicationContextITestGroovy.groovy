@@ -27,14 +27,14 @@ class ClassPathApplicationContextITestGroovy extends GroovyTestCase {
         ApplicationContext applicationContextSetReader = new ClassPathApplicationContext()
         applicationContextSetReader.setBeanDefinitionReader(new XMLBeanDefinitionReader("src/test/resources/context.xml"))
         applicationContextSetReader.start()
-        assertTrue(applicationContext.getBean(UserService.class) == applicationContextSetReader.getBean(UserService.class))
-        assertTrue(applicationContext.getBean("mailService", MailService.class) == applicationContextSetReader.getBean("mailService", MailService.class))
-        assertTrue(applicationContext.getBean("paymentWithMaxService") == applicationContextSetReader.getBean("paymentWithMaxService"))
+        assertEquals(applicationContext.getBean(UserService.class), applicationContextSetReader.getBean(UserService.class))
+        assertEquals(applicationContext.getBean("mailService", MailService.class), applicationContextSetReader.getBean("mailService", MailService.class))
+        assertEquals(applicationContext.getBean("paymentWithMaxService"), applicationContextSetReader.getBean("paymentWithMaxService"))
     }
 
     void testGetBeanByClass() {
-        assertTrue(userService == applicationContext.getBean(UserService.class))
-        assertTrue(mailService == applicationContext.getBean(MailService.class))
+        assertEquals(userService, applicationContext.getBean(UserService.class))
+        assertEquals(mailService, applicationContext.getBean(MailService.class))
     }
 
     void testGetBeanByClassException() {
@@ -42,16 +42,16 @@ class ClassPathApplicationContextITestGroovy extends GroovyTestCase {
     }
 
     void testGetBeanByNameAndClass() {
-        assertTrue(userService == applicationContext.getBean("userService", UserService.class))
-        assertTrue(mailService == applicationContext.getBean("mailService", MailService.class))
-        assertTrue(paymentService == applicationContext.getBean("paymentService", PaymentService.class))
-        assertTrue(paymentServiceWithMaxAmount == applicationContext.getBean("paymentWithMaxService", PaymentService.class))
+        assertEquals(userService,applicationContext.getBean("userService", UserService.class))
+        assertEquals(mailService, applicationContext.getBean("mailService", MailService.class))
+        assertEquals(paymentService,applicationContext.getBean("paymentService", PaymentService.class))
+        assertEquals(paymentServiceWithMaxAmount, applicationContext.getBean("paymentWithMaxService", PaymentService.class))
     }
 
     void testGetBeanByName() {
-        assertTrue(userService == applicationContext.getBean("userService"))
-        assertTrue(mailService == applicationContext.getBean("mailService"))
-        assertTrue(paymentService == applicationContext.getBean("paymentService"))
-        assertTrue(paymentServiceWithMaxAmount == applicationContext.getBean("paymentWithMaxService"))
+        assertEquals(userService, applicationContext.getBean("userService"))
+        assertEquals(mailService, applicationContext.getBean("mailService"))
+        assertEquals(paymentService, applicationContext.getBean("paymentService"))
+        assertEquals(paymentServiceWithMaxAmount, applicationContext.getBean("paymentWithMaxService"))
     }
 }
