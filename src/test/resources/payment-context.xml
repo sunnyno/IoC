@@ -1,7 +1,7 @@
 <beans>
     <import resource="src/test/resources/payment-max-context.xml"/>
 
-    <bean id="paymentService" class="com.dzytsiuk.ioc.service.PaymentService">
+    <bean id="paymentService" class="com.dzytsiuk.ioc.testdata.service.PaymentService">
         <property name="mailService" ref="mailService"/>
     </bean>
 </beans>

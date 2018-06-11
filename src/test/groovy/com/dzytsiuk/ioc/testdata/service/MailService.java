@@ -1,4 +1,4 @@
-package com.dzytsiuk.ioc.service;
+package com.dzytsiuk.ioc.testdata.service;
 
 
 import java.util.Objects;

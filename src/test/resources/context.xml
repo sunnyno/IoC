@@ -1,12 +1,12 @@
 <beans>
     <import resource="src/test/resources/payment-context.xml"/>
 
-    <bean id="mailService" class="com.dzytsiuk.ioc.service.MailService">
+    <bean id="mailService" class="com.dzytsiuk.ioc.testdata.service.MailService">
         <property name="protocol" value="POP3"/>
         <property name="port" value="3000"/>
     </bean>
 
-    <bean id="userService" class="com.dzytsiuk.ioc.service.UserService">
+    <bean id="userService" class="com.dzytsiuk.ioc.testdata.service.UserService">
         <property name="mailService" ref="mailService"/>
     </bean>
 </beans>

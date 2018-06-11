@@ -3,7 +3,8 @@ package com.dzytsiuk.ioc.io;
 
 import com.dzytsiuk.ioc.entity.BeanDefinition;
 import com.dzytsiuk.ioc.exception.SourceParseException;
-import org.xml.sax.Attributes;
+import com.dzytsiuk.ioc.io.handler.BeanDefinitionHandler;
+import com.dzytsiuk.ioc.io.handler.ImportHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -13,7 +14,6 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
@@ -29,19 +29,16 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
         contextFiles = new ArrayList<>(Arrays.asList(path));
     }
 
-
     @Override
     public List<BeanDefinition> getBeanDefinitions() {
         setImportedContextFileNames(contextFiles);
 
         try {
             SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
-            DefaultHandler beanDefinitionHandler = new BeanDefinitionHandler();
+            DefaultHandler beanDefinitionHandler = new BeanDefinitionHandler(beanDefinitions);
             for (String contextFile : contextFiles) {
                 saxParser.parse(contextFile, beanDefinitionHandler);
             }
-
-
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SourceParseException("Error parsing XML", e);
         }
@@ -52,109 +49,20 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
         try {
             SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
             ImportHandler importHandler = new ImportHandler();
-
+            List<String> importFiles = importHandler.getImportFiles();
             for (String xmlFilePath : initialContextFileNames) {
                 saxParser.parse(xmlFilePath, importHandler);
-
             }
-            while (!importHandler.importFiles.isEmpty()) {
-                contextFiles.addAll(importHandler.importFiles);
-                setImportedContextFileNames(importHandler.importFiles);
-                importHandler.importFiles.clear();
+            while (!importFiles.isEmpty()) {
+                contextFiles.addAll(importFiles);
+                setImportedContextFileNames(importFiles);
+                importFiles.clear();
             }
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SourceParseException("Error parsing XML", e);
         }
     }
 
-    class BeanDefinitionHandler extends DefaultHandler {
-
-        private static final String BEANS = "beans";
-        private static final String BEAN = "bean";
-        private static final String ID = "id";
-        private static final String CLASS = "class";
-        private static final String PROPERTY = "property";
-        private static final String NAME = "name";
-        private static final String VALUE = "value";
-        private static final String REF = "ref";
-        private boolean bbeans = false;
-
-        private BeanDefinition beanDefinition = new BeanDefinition();
-
-        public void startElement(String uri, String localName, String qName,
-                                 Attributes attributes) {
-
-            if (qName.equalsIgnoreCase(BEANS)) {
-                bbeans = true;
-            }
-
-            if (qName.equalsIgnoreCase(BEAN)) {
-                beanDefinition.setId(attributes.getValue(ID));
-                beanDefinition.setBeanClassName(attributes.getValue(CLASS));
-            }
-
-            if (qName.equalsIgnoreCase(PROPERTY)) {
-                String name = attributes.getValue(NAME);
-                String value = attributes.getValue(VALUE);
-                String ref = attributes.getValue(REF);
-                if (ref != null) {
-                    if (beanDefinition.getRefDependencies() != null) {
-                        beanDefinition.getRefDependencies().put(name, ref);
-                    } else {
-                        beanDefinition.setRefDependencies(new HashMap<String, String>() {{
-                            put(name, ref);
-                        }});
-                    }
-                } else {
-                    if (beanDefinition.getDependencies() != null) {
-                        beanDefinition.getDependencies().put(name, value);
-                    } else {
-                        beanDefinition.setDependencies(new HashMap<String, String>() {{
-                            put(name, value);
-                        }});
-                    }
-                }
-            }
-
-        }
-
-        public void endElement(String uri, String localName,
-                               String qName) {
-            if (qName.equals(BEAN)) {
-                if (!bbeans) throw new SourceParseException("Root Element " + BEANS + " is not found");
-                beanDefinitions.add(beanDefinition);
-                beanDefinition = new BeanDefinition();
-            }
-        }
-
-
-    }
-
-    class ImportHandler extends DefaultHandler {
-
-        private static final String IMPORT = "import";
-        private static final String RESOURCE = "resource";
-        private String resource;
-
-
-        private List<String> importFiles = new ArrayList<>();
-
-        public void startElement(String uri, String localName, String qName,
-                                 Attributes attributes) {
-
-            if (qName.equalsIgnoreCase(IMPORT)) {
-                resource = attributes.getValue(RESOURCE);
-            }
-        }
-
-        public void endElement(String uri, String localName,
-                               String qName) throws SAXException {
-            if (qName.equals(IMPORT)) {
-                importFiles.add(resource);
-            }
-        }
-
-    }
 
 }
 

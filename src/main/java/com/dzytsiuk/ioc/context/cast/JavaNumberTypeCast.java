@@ -3,35 +3,27 @@ package com.dzytsiuk.ioc.context.cast;
 
 public class JavaNumberTypeCast {
 
-    private static final String SHORT = "short";
-    private static final String LONG = "long";
-    private static final String FLOAT = "float";
-    private static final String DOUBLE = "double";
-    private static final String BYTE = "byte";
-    private static final String BOOLEAN = "boolean";
-    private static final String INT = "int";
-
     public static Object castPrimitive(String value, Class<?> clazz) {
-        if (clazz.getName().equals(INT)) {
+        if (clazz == int.class) {
             return Integer.valueOf(value);
         }
-        if (clazz.getName().equals(BOOLEAN)) {
+        if (clazz == boolean.class) {
             return Boolean.valueOf(value);
         }
-        if (clazz.getName().equals(BYTE)) {
+        if (clazz == byte.class) {
             return Byte.valueOf(value);
         }
-        if (clazz.getName().equals(DOUBLE)) {
+        if (clazz == double.class) {
             return Double.valueOf(value);
         }
-        if (clazz.getName().equals(FLOAT)) {
-            return Float.parseFloat(value);
+        if (clazz == float.class) {
+            return Float.valueOf(value);
         }
-        if (clazz.getName().equals(LONG)) {
-            return Long.parseLong(value);
+        if (clazz == long.class) {
+            return Long.valueOf(value);
         }
-        if (clazz.getName().equals(SHORT)) {
-            return Short.parseShort(value);
+        if (clazz == short.class) {
+            return Short.valueOf(value);
         }
         return null;
     }

@@ -1,0 +1,5 @@
+<beans>
+    <bean id = "noDefaultConstructor" class = "com.dzytsiuk.ioc.testdata.service.NoDefaultConstructorService">
+        <property name = "id" value = "1"/>
+    </bean>
+</beans>

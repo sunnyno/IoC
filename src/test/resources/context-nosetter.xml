@@ -1,0 +1,5 @@
+<beans>
+    <bean id = "noSetter" class = "com.dzytsiuk.ioc.testdata.service.NoSetterService">
+        <property name = "id" value = "1"/>
+    </bean>
+</beans>

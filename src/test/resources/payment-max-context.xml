@@ -1,5 +1,5 @@
 <beans>
-    <bean id="paymentWithMaxService" class="com.dzytsiuk.ioc.service.PaymentService">
+    <bean id="paymentWithMaxService" class="com.dzytsiuk.ioc.testdata.service.PaymentService">
         <property name="mailService" ref="mailService"/>
         <property name="maxAmount" value="500"/>
     </bean>
