@@ -18,12 +18,9 @@ import java.util.List;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
-
     private static final SAXParserFactory SAX_PARSER_FACTORY = SAXParserFactory.newInstance();
 
-
     private List<String> contextFiles;
-    private List<BeanDefinition> beanDefinitions = new ArrayList<>();
 
     public XMLBeanDefinitionReader(String... path) {
         contextFiles = new ArrayList<>(Arrays.asList(path));
@@ -34,15 +31,17 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
         setImportedContextFileNames(contextFiles);
 
         try {
+            List<BeanDefinition> beanDefinitions = new ArrayList<>();
             SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
             DefaultHandler beanDefinitionHandler = new BeanDefinitionHandler(beanDefinitions);
             for (String contextFile : contextFiles) {
                 saxParser.parse(contextFile, beanDefinitionHandler);
             }
+            return beanDefinitions;
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new SourceParseException("Error parsing XML", e);
         }
-        return beanDefinitions;
+
     }
 
     void setImportedContextFileNames(List<String> initialContextFileNames) {

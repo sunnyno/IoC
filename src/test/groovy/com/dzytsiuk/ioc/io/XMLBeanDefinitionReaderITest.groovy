@@ -20,8 +20,8 @@ class XMLBeanDefinitionReaderITest {
     void getBeanDefinitionsExceptionTest() {
         def actualMessage = shouldFail(SourceParseException) {
             new XMLBeanDefinitionReader("src/test/resources/context-nobeanstag.xml").getBeanDefinitions()
-        } as String
-        assertEquals(actualMessage, "com.dzytsiuk.ioc.exception.SourceParseException: Root Element beans is not found")
+        }
+        assertEquals(actualMessage.message, "Root Element beans is not found")
     }
 
     @Test(dataProvider = "beanDefinitionsPathProvider", dataProviderClass = BeanDefinitionDataProvider.class)

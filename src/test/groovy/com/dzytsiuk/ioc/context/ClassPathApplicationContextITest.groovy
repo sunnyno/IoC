@@ -36,23 +36,24 @@ class ClassPathApplicationContextITest {
     @Test
     void multipleBeansExceptionTest() {
         ApplicationContext applicationContext = new ClassPathApplicationContext("src/test/resources/context.xml")
-        shouldFail(MultipleBeansForClassException) { applicationContext.getBean(PaymentService.class) }
+        def message = shouldFail(MultipleBeansForClassException) { applicationContext.getBean(PaymentService.class) }
+        assertEquals(message.message, "Multiple beans found for com.dzytsiuk.ioc.testdata.service.PaymentService")
     }
 
     @Test
     void noDefaultConstructorTest() {
         def actualMessage = shouldFail(BeanInstantiationException) {
             new ClassPathApplicationContext("src/test/resources/context-nodefaultconstructor.xml")
-        } as String
-        assertEquals(actualMessage, "com.dzytsiuk.ioc.exception.BeanInstantiationException: No constructor found for com.dzytsiuk.ioc.testdata.service.NoDefaultConstructorService")
+        }
+        assertEquals(actualMessage.message, "No constructor found for com.dzytsiuk.ioc.testdata.service.NoDefaultConstructorService")
     }
 
     @Test
     void noSetterTest() {
         def actualMessage = shouldFail(BeanInstantiationException) {
             new ClassPathApplicationContext("src/test/resources/context-nosetter.xml")
-        } as String
-        assertEquals(actualMessage, "com.dzytsiuk.ioc.exception.BeanInstantiationException: No setter found for noSetter");
+        }
+        assertEquals(actualMessage.message, "No setter found for noSetter");
     }
 
     @Test(dataProvider = "beanProvider", dataProviderClass = BeanDataProvider.class)
