@@ -11,10 +11,12 @@ class BeanDataProvider {
     @DataProvider(name = "beanProvider")
     static Object[][] provideBeans() {
         def mailService = new MailService(protocol: "POP3", port: 3000)
+        def mailServicePostProcess = new MailService(protocol: "postProcessProtocol", port: 10000, domain: 'gmail')
         def userService = new UserService(mailService: mailService)
         def paymentService = new PaymentService(mailService: mailService)
         def paymentServiceWithMaxAmount = new PaymentService(mailService: mailService, maxAmount: 500)
         def beans = ["mailService"                : new Bean(id: "mailService", value: mailService),
+                     "mailServicePostProcess"     : new Bean(id: "mailService", value: mailServicePostProcess),
                      "userService"                : new Bean(id: "userService", value: userService),
                      "paymentService"             : new Bean(id: "paymentService", value: paymentService),
                      "paymentServiceWithMaxAmount": new Bean(id: "paymentServiceWithMaxAmount", value: paymentServiceWithMaxAmount)

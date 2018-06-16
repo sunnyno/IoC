@@ -1,13 +1,20 @@
 package com.dzytsiuk.ioc.testdata.service;
 
 
+import javax.annotation.PostConstruct;
 import java.util.Objects;
 
 public class MailService {
     private int port;
     private String protocol;
+    private String domain;
 
     public MailService() {
+    }
+
+    @PostConstruct
+    public void init(){
+        domain = "gmail";
     }
 
     public void setProtocol(String protocol) {
@@ -18,6 +25,10 @@ public class MailService {
         this.port = port;
     }
 
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

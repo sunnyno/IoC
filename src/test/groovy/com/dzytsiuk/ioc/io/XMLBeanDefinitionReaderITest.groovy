@@ -10,14 +10,14 @@ import static org.testng.Assert.*;
 class XMLBeanDefinitionReaderITest {
 
     @Test(dataProvider = "beanDefinitionsProvider", dataProviderClass = BeanDefinitionDataProvider.class)
-    void getBeanDefinitionsTest(expectedBeanDefinitions) {
+    void "get bean definition"(expectedBeanDefinitions) {
         XMLBeanDefinitionReader xmlBeanDefinitionReader = new XMLBeanDefinitionReader("src/test/resources/context.xml")
         def actualBeanDefinitions = xmlBeanDefinitionReader.getBeanDefinitions()
         expectedBeanDefinitions.each { assertTrue(actualBeanDefinitions.remove(it)) }
     }
 
     @Test
-    void getBeanDefinitionsExceptionTest() {
+    void "no root element exception"() {
         def actualMessage = shouldFail(SourceParseException) {
             new XMLBeanDefinitionReader("src/test/resources/context-nobeanstag.xml").getBeanDefinitions()
         }
@@ -25,10 +25,9 @@ class XMLBeanDefinitionReaderITest {
     }
 
     @Test(dataProvider = "beanDefinitionsPathProvider", dataProviderClass = BeanDefinitionDataProvider.class)
-    void setImportedContextFileNamesTest(expectedPaths) {
+    void "get files for scan"(expectedPaths) {
         XMLBeanDefinitionReader xmlBeanDefinitionReader = new XMLBeanDefinitionReader("src/test/resources/context.xml")
-        xmlBeanDefinitionReader.setImportedContextFileNames(Arrays.asList("src/test/resources/context.xml"))
-        List actualPaths = xmlBeanDefinitionReader.contextFiles
+        List actualPaths = xmlBeanDefinitionReader.getContextsForScan()
         expectedPaths.each { assertTrue(actualPaths.remove(it)) }
     }
 

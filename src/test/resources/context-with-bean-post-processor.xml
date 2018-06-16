@@ -1,0 +1,7 @@
+<beans>
+    <bean id="postProcess1" class="com.dzytsiuk.ioc.testdata.service.BeanPostProcessorService"/>
+    <bean id="postProcess2" class="com.dzytsiuk.ioc.testdata.service.BeanPostProcessorService2"/>
+
+    <bean id="mailService" class="com.dzytsiuk.ioc.testdata.service.MailService">
+    </bean>
+</beans>

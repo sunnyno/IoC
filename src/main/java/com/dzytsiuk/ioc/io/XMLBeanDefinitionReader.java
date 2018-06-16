@@ -12,9 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
@@ -28,13 +26,13 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
     @Override
     public List<BeanDefinition> getBeanDefinitions() {
-        setImportedContextFileNames(contextFiles);
 
         try {
+            List<String> contextsForScan = getContextsForScan();
             List<BeanDefinition> beanDefinitions = new ArrayList<>();
             SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
             DefaultHandler beanDefinitionHandler = new BeanDefinitionHandler(beanDefinitions);
-            for (String contextFile : contextFiles) {
+            for (String contextFile : contextsForScan) {
                 saxParser.parse(contextFile, beanDefinitionHandler);
             }
             return beanDefinitions;
@@ -44,22 +42,20 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
 
     }
 
-    void setImportedContextFileNames(List<String> initialContextFileNames) {
-        try {
+    List<String> getContextsForScan() throws IOException, SAXException, ParserConfigurationException {
+        List<String> allContextFiles = new ArrayList<>(contextFiles);
+        Queue<String> resourceFilesQueue = new LinkedList<>(contextFiles);
+        while (!resourceFilesQueue.isEmpty()) {
             SAXParser saxParser = SAX_PARSER_FACTORY.newSAXParser();
             ImportHandler importHandler = new ImportHandler();
-            List<String> importFiles = importHandler.getImportFiles();
-            for (String xmlFilePath : initialContextFileNames) {
-                saxParser.parse(xmlFilePath, importHandler);
-            }
-            while (!importFiles.isEmpty()) {
-                contextFiles.addAll(importFiles);
-                setImportedContextFileNames(importFiles);
-                importFiles.clear();
-            }
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            throw new SourceParseException("Error parsing XML", e);
+            String pathToFile = resourceFilesQueue.remove();
+            saxParser.parse(pathToFile, importHandler);
+
+            resourceFilesQueue.addAll(importHandler.getImportFiles());
+            allContextFiles.addAll(importHandler.getImportFiles());
         }
+        return allContextFiles;
+
     }
 
 

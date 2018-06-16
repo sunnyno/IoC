@@ -18,6 +18,7 @@ public class BeanDefinitionHandler extends DefaultHandler {
     private static final String NAME_ATTRIBUTE = "name";
     private static final String VALUE_ATTRIBUTE = "value";
     private static final String REF_ATTRIBUTE = "ref";
+    private static final String INIT_METHOD_ATTRIBUTE = "init-method";
     private boolean hasBeansTag = false;
 
     private List<BeanDefinition> beanDefinitions;
@@ -37,10 +38,12 @@ public class BeanDefinitionHandler extends DefaultHandler {
             throw new SourceParseException("Root Element " + BEANS_TAG + " is not found");
         }
 
+
         if (qName.equalsIgnoreCase(BEAN_TAG)) {
             BeanDefinition beanDefinition = new BeanDefinition();
             beanDefinition.setId(attributes.getValue(ID_ATTRIBUTE));
             beanDefinition.setBeanClassName(attributes.getValue(CLASS_ATTRIBUTE));
+            beanDefinition.setSystem(false);
             beanDefinitions.add(beanDefinition);
         } else {
 

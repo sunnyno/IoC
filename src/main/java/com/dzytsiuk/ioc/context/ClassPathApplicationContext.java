@@ -11,12 +11,17 @@ import com.dzytsiuk.ioc.exception.MultipleBeansForClassException;
 import com.dzytsiuk.ioc.io.BeanDefinitionReader;
 import com.dzytsiuk.ioc.io.XMLBeanDefinitionReader;
 
+import javax.annotation.PostConstruct;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class ClassPathApplicationContext implements ApplicationContext {
 
+    public static final String POST_PROCESS_BEAN_FACTORY_METHOD = "postProcessBeanFactory";
     private Map<String, Bean> beans;
     private List<BeanDefinition> beanDefinitions;
 
@@ -30,7 +35,9 @@ public class ClassPathApplicationContext implements ApplicationContext {
     }
 
     public void start() {
+        invokeBeanFactoryPostProcessor();
         constructBeans();
+
         for (BeanDefinition beanDefinition : beanDefinitions) {
             Bean bean = beans.get(beanDefinition.getId());
 
@@ -41,18 +48,43 @@ public class ClassPathApplicationContext implements ApplicationContext {
             }
 
         }
+        BeanPostProcessInvoker beanPostProcessInvoker = new BeanPostProcessInvoker(beans, beanDefinitions);
+
+        beanPostProcessInvoker.postProcessBeforeInitialization();
+        invokeInitMethod();
+        beanPostProcessInvoker.postProcessAfterInitialization();
     }
+
+    private void invokeBeanFactoryPostProcessor() {
+        Iterator<BeanDefinition> iterator = beanDefinitions.iterator();
+        while (iterator.hasNext()) {
+            try {
+                BeanDefinition beanDefinition = iterator.next();
+                Class<?>[] interfaces = Class.forName(beanDefinition.getBeanClassName()).getInterfaces();
+                for (Class<?> classInterface : interfaces) {
+                    if (classInterface.equals(BeanFactoryPostProcessor.class)) {
+                        Bean bean = constructBean(beanDefinition);
+                        Method postProcessBeanFactory = bean.getValue().getClass().getMethod(POST_PROCESS_BEAN_FACTORY_METHOD, List.class);
+                        iterator.remove();
+                        postProcessBeanFactory.invoke(bean.getValue(), beanDefinitions);
+                        break;
+                    }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private void constructBeans() {
         beans = new HashMap<>();
 
         for (BeanDefinition beanDefinition : beanDefinitions) {
             try {
-                Bean bean = new Bean();
 
-                bean.setValue(Class.forName(beanDefinition.getBeanClassName()).newInstance());
-                bean.setId(beanDefinition.getId());
-                beans.put(beanDefinition.getId(), bean);
+                beans.put(beanDefinition.getId(), constructBean(beanDefinition));
 
             } catch (InstantiationException e) {
                 throw new BeanInstantiationException("No constructor found for " + beanDefinition.getBeanClassName(), e);
@@ -63,8 +95,55 @@ public class ClassPathApplicationContext implements ApplicationContext {
             }
 
         }
+    }
+
+    private Bean constructBean(BeanDefinition beanDefinition) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        Class<?> beanClass = Class.forName(beanDefinition.getBeanClassName());
+        for (Class<?> beanInterface : beanClass.getInterfaces()) {
+            if (beanInterface.equals(BeanPostProcessor.class)) {
+                beanDefinition.setSystem(true);
+            }
+        }
+
+        Bean bean = new Bean();
+        bean.setValue(beanClass.newInstance());
+        bean.setId(beanDefinition.getId());
+        return bean;
+
+    }
 
 
+    private void invokeInitMethod() {
+        setInitMethods();
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            String initMethodName = beanDefinition.getInitMethodName();
+            if (initMethodName != null) {
+                Bean bean = beans.get(beanDefinition.getId());
+                Object beanValue = bean.getValue();
+                try {
+                    Class<?> beanClass = beanValue.getClass();
+                    Method initMethod = beanClass.getMethod(initMethodName);
+                    initMethod.invoke(beanValue);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
+
+    private void setInitMethods() {
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            Bean bean = beans.get(beanDefinition.getId());
+            Class<?> beanClass = bean.getValue().getClass();
+            for (Method method : beanClass.getMethods()) {
+                if (method.isAnnotationPresent(PostConstruct.class)) {
+                    beanDefinition.setInitMethodName(method.getName());
+                    break;
+                }
+
+            }
+        }
     }
 
 

@@ -9,6 +9,24 @@ public class BeanDefinition {
     private String beanClassName;
     private Map<String, String> dependencies;
     private Map<String, String> refDependencies;
+    private String initMethodName;
+    private boolean isSystem;
+
+    public String getInitMethodName() {
+        return initMethodName;
+    }
+
+    public void setInitMethodName(String initMethodName) {
+        this.initMethodName = initMethodName;
+    }
+
+    public boolean isSystem() {
+        return isSystem;
+    }
+
+    public void setSystem(boolean system) {
+        isSystem = system;
+    }
 
     public String getId() {
         return id;
