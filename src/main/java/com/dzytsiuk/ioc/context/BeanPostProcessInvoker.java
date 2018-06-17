@@ -59,6 +59,9 @@ public class BeanPostProcessInvoker {
 
     public void postProcessAfterInitialization() {
         postProcess("postProcessAfterInitialization");
+        for (Bean systemBean : systemBeans) {
+            beans.remove(systemBean.getId());
+        }
 
     }
 

@@ -41,8 +41,10 @@ public class BeanDefinitionHandler extends DefaultHandler {
 
         if (qName.equalsIgnoreCase(BEAN_TAG)) {
             BeanDefinition beanDefinition = new BeanDefinition();
-            beanDefinition.setId(attributes.getValue(ID_ATTRIBUTE));
-            beanDefinition.setBeanClassName(attributes.getValue(CLASS_ATTRIBUTE));
+            String className = attributes.getValue(CLASS_ATTRIBUTE);
+            String id = attributes.getValue(ID_ATTRIBUTE);
+            beanDefinition.setId((id != null)? id : className);
+            beanDefinition.setBeanClassName(className);
             beanDefinition.setSystem(false);
             beanDefinitions.add(beanDefinition);
         } else {

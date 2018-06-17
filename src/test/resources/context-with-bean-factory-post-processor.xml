@@ -1,5 +1,5 @@
 <beans>
-    <bean id="postProcess1" class="com.dzytsiuk.ioc.testdata.service.BeanFactoryProcessorService"/>
+    <bean class="com.dzytsiuk.ioc.testdata.service.BeanFactoryProcessorService"/>
 
     <bean id="mailService" class="com.dzytsiuk.ioc.testdata.service.MailService">
         <property name="protocol" value="POP3"/>

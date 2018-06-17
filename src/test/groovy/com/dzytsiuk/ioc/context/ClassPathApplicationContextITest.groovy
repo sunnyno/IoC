@@ -88,4 +88,5 @@ class ClassPathApplicationContextITest {
         assertEquals(applicationContext.getBean("mailService", MailService.class), beans.get("mailServicePostProcess").getValue())
 
     }
+
 }
