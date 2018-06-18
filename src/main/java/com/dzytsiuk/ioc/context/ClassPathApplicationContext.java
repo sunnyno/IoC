@@ -4,6 +4,9 @@ package com.dzytsiuk.ioc.context;
 import com.dzytsiuk.ioc.context.inject.Injector;
 import com.dzytsiuk.ioc.context.inject.RefInjector;
 import com.dzytsiuk.ioc.context.inject.ValueInjector;
+import com.dzytsiuk.ioc.context.postprocessing.BeanFactoryPostProcessor;
+import com.dzytsiuk.ioc.context.postprocessing.BeanPostProcessInvoker;
+import com.dzytsiuk.ioc.context.postprocessing.BeanPostProcessor;
 import com.dzytsiuk.ioc.entity.Bean;
 import com.dzytsiuk.ioc.entity.BeanDefinition;
 import com.dzytsiuk.ioc.exception.BeanInstantiationException;
@@ -35,9 +38,11 @@ public class ClassPathApplicationContext implements ApplicationContext {
     }
 
     public void start() {
+        //construct
         invokeBeanFactoryPostProcessor();
         constructBeans();
 
+        //inject ref and value
         for (BeanDefinition beanDefinition : beanDefinitions) {
             Bean bean = beans.get(beanDefinition.getId());
 
@@ -48,8 +53,9 @@ public class ClassPathApplicationContext implements ApplicationContext {
             }
 
         }
-        BeanPostProcessInvoker beanPostProcessInvoker = new BeanPostProcessInvoker(beans, beanDefinitions);
 
+        //post processing
+        BeanPostProcessInvoker beanPostProcessInvoker = new BeanPostProcessInvoker(beans, beanDefinitions);
         beanPostProcessInvoker.postProcessBeforeInitialization();
         invokeInitMethod();
         beanPostProcessInvoker.postProcessAfterInitialization();
@@ -98,13 +104,14 @@ public class ClassPathApplicationContext implements ApplicationContext {
     }
 
     private Bean constructBean(BeanDefinition beanDefinition) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        //set isSystemProperty
         Class<?> beanClass = Class.forName(beanDefinition.getBeanClassName());
         for (Class<?> beanInterface : beanClass.getInterfaces()) {
             if (beanInterface.equals(BeanPostProcessor.class)) {
                 beanDefinition.setSystem(true);
             }
         }
-
+        //construct bean
         Bean bean = new Bean();
         bean.setValue(beanClass.newInstance());
         bean.setId(beanDefinition.getId());

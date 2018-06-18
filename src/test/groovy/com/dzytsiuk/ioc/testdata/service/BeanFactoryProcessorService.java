@@ -1,6 +1,6 @@
 package com.dzytsiuk.ioc.testdata.service;
 
-import com.dzytsiuk.ioc.context.BeanFactoryPostProcessor;
+import com.dzytsiuk.ioc.context.postprocessing.BeanFactoryPostProcessor;
 import com.dzytsiuk.ioc.entity.BeanDefinition;
 
 import java.util.List;

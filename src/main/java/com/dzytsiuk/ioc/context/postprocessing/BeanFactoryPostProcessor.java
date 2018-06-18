@@ -1,4 +1,4 @@
-package com.dzytsiuk.ioc.context;
+package com.dzytsiuk.ioc.context.postprocessing;
 
 import com.dzytsiuk.ioc.entity.BeanDefinition;
 

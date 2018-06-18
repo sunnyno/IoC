@@ -1,4 +1,4 @@
-package com.dzytsiuk.ioc.context;
+package com.dzytsiuk.ioc.context.postprocessing;
 
 public interface BeanPostProcessor {
 

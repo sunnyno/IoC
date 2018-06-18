@@ -1,6 +1,6 @@
 package com.dzytsiuk.ioc.testdata.service;
 
-import com.dzytsiuk.ioc.context.BeanPostProcessor;
+import com.dzytsiuk.ioc.context.postprocessing.BeanPostProcessor;
 
 public class BeanPostProcessorService2 implements BeanPostProcessor {
     @Override
