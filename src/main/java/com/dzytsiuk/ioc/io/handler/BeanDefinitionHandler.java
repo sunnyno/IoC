@@ -18,7 +18,6 @@ public class BeanDefinitionHandler extends DefaultHandler {
     private static final String NAME_ATTRIBUTE = "name";
     private static final String VALUE_ATTRIBUTE = "value";
     private static final String REF_ATTRIBUTE = "ref";
-    private static final String INIT_METHOD_ATTRIBUTE = "init-method";
     private boolean hasBeansTag = false;
 
     private List<BeanDefinition> beanDefinitions;

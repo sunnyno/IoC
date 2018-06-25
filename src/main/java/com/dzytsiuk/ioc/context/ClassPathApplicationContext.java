@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class ClassPathApplicationContext implements ApplicationContext {
 
-    public static final String POST_PROCESS_BEAN_FACTORY_METHOD = "postProcessBeanFactory";
+    private static final String POST_PROCESS_BEAN_FACTORY_METHOD = "postProcessBeanFactory";
     private Map<String, Bean> beans;
     private List<BeanDefinition> beanDefinitions;
 
