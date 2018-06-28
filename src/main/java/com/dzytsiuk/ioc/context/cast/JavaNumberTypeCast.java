@@ -3,7 +3,7 @@ package com.dzytsiuk.ioc.context.cast;
 
 public class JavaNumberTypeCast {
 
-    public static Object castPrimitive(String value, Class<?> clazz) {
+    public static Object parsePrimitive(String value, Class<?> clazz) {
         if (clazz == int.class) {
             return Integer.valueOf(value);
         }
@@ -25,7 +25,7 @@ public class JavaNumberTypeCast {
         if (clazz == short.class) {
             return Short.valueOf(value);
         }
-        return null;
+        throw new IllegalArgumentException("Class is not primitive");
     }
 
 }

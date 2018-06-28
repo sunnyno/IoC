@@ -2,10 +2,7 @@ package com.dzytsiuk.ioc.context.postprocessing;
 
 import com.dzytsiuk.ioc.entity.Bean;
 import com.dzytsiuk.ioc.entity.BeanDefinition;
-import com.dzytsiuk.ioc.exception.BeanInstantiationException;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,40 +30,40 @@ public class BeanPostProcessInvoker {
         return systemBeans;
     }
 
-    private void postProcess(String systemBeanClassMethod) {
-        try {
-            for (Bean systemBean : systemBeans) {
-                Object systemBeanObj = systemBean.getValue();
-                Class<?> systemBeanClass = systemBeanObj.getClass();
-                Method postProcess = systemBeanClass.getMethod(systemBeanClassMethod, Object.class, String.class);
-                for (Map.Entry<String, Bean> beanEntry : beans.entrySet()) {
+    private void postProcess(boolean before) {
+        for (Bean systemBean : systemBeans) {
+            BeanPostProcessor systemBeanObj = (BeanPostProcessor) systemBean.getValue();
+            for (Map.Entry<String, Bean> beanEntry : beans.entrySet()) {
 
-                    Bean currentBean = beanEntry.getValue();
-                    Object currentBeanObject = currentBean.getValue();
+                Bean currentBean = beanEntry.getValue();
+                Object currentBeanObject = currentBean.getValue();
 
-                    if (!currentBeanObject.getClass().equals(systemBeanClass)) {
-                        currentBean.setValue(postProcess.invoke(systemBeanObj, currentBeanObject, beanEntry.getKey()));
+                if (currentBeanObject != systemBeanObj) {
+                    Object newBeanValue;
+                    if (before) {
+                        newBeanValue = systemBeanObj.postProcessBeforeInitialization(currentBeanObject, beanEntry.getKey());
+                    } else {
+                        newBeanValue = systemBeanObj.postProcessAfterInitialization(currentBeanObject, beanEntry.getKey());
                     }
-
+                    currentBean.setValue(newBeanValue);
                 }
             }
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new BeanInstantiationException("Post processor error", e);
         }
+
 
     }
 
 
-    public void postProcessAfterInitialization() {
-        postProcess("postProcessAfterInitialization");
+    public void beforeInit() {
+        postProcess(true);
+    }
+
+    public void afterInit() {
+        postProcess(false);
         for (Bean systemBean : systemBeans) {
             beans.remove(systemBean.getId());
         }
 
-    }
-
-    public void postProcessBeforeInitialization() {
-        postProcess("postProcessBeforeInitialization");
     }
 
 }

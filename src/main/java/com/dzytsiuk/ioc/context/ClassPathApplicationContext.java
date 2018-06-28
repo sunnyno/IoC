@@ -24,8 +24,8 @@ import java.util.Map;
 
 public class ClassPathApplicationContext implements ApplicationContext {
 
-    private static final String POST_PROCESS_BEAN_FACTORY_METHOD = "postProcessBeanFactory";
-    private Map<String, Bean> beans;
+    private static final String POST_PROCESS_BEAN_FACTORY_METHOD_NAME = "postProcessBeanFactory";
+    private Map<String, Bean> beans = new HashMap<>();
     private List<BeanDefinition> beanDefinitions;
 
     public ClassPathApplicationContext() {
@@ -56,9 +56,9 @@ public class ClassPathApplicationContext implements ApplicationContext {
 
         //post processing
         BeanPostProcessInvoker beanPostProcessInvoker = new BeanPostProcessInvoker(beans, beanDefinitions);
-        beanPostProcessInvoker.postProcessBeforeInitialization();
+        beanPostProcessInvoker.beforeInit();
         invokeInitMethod();
-        beanPostProcessInvoker.postProcessAfterInitialization();
+        beanPostProcessInvoker.afterInit();
     }
 
     private void invokeBeanFactoryPostProcessor() {
@@ -66,27 +66,21 @@ public class ClassPathApplicationContext implements ApplicationContext {
         while (iterator.hasNext()) {
             try {
                 BeanDefinition beanDefinition = iterator.next();
-                Class<?>[] interfaces = Class.forName(beanDefinition.getBeanClassName()).getInterfaces();
-                for (Class<?> classInterface : interfaces) {
-                    if (classInterface.equals(BeanFactoryPostProcessor.class)) {
-                        Bean bean = constructBean(beanDefinition);
-                        Method postProcessBeanFactory = bean.getValue().getClass().getMethod(POST_PROCESS_BEAN_FACTORY_METHOD, List.class);
-                        iterator.remove();
-                        postProcessBeanFactory.invoke(bean.getValue(), beanDefinitions);
-                        break;
-                    }
-
+                Class<?> beanClass = Class.forName(beanDefinition.getBeanClassName());
+                if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass)) {
+                    Bean bean = constructBean(beanDefinition);
+                    Method postProcessBeanFactory = beanClass.getMethod(POST_PROCESS_BEAN_FACTORY_METHOD_NAME, List.class);
+                    iterator.remove();
+                    postProcessBeanFactory.invoke(bean.getValue(), beanDefinitions);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new BeanInstantiationException("Bean Factory post processing error");
             }
         }
     }
 
 
     private void constructBeans() {
-        beans = new HashMap<>();
-
         for (BeanDefinition beanDefinition : beanDefinitions) {
             try {
 

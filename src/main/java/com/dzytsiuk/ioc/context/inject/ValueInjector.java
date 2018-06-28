@@ -17,7 +17,7 @@ public class ValueInjector extends Injector {
     @Override
     void invokeSetter(Bean bean, String propertyValue, Method method, Class<?> argumentType) throws IllegalAccessException, InvocationTargetException {
         method.invoke(bean.getValue(), argumentType.isPrimitive() ?
-                JavaNumberTypeCast.castPrimitive(propertyValue, argumentType)
+                JavaNumberTypeCast.parsePrimitive(propertyValue, argumentType)
                 : argumentType.cast(propertyValue));
     }
 }
